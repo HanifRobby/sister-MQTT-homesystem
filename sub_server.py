@@ -1,5 +1,17 @@
 import json
-import paho.mqtt.client as mqtt
+import paho.mqtt.client as mqtt_client
+import time
+import os
+import sys
+
+# Menambahkan path ke modules
+sys.path.append(os.path.join(os.path.dirname(__file__), 'modules'))
+from database import Database
+
+# Inisialisasi database
+db_path = os.path.join(os.path.dirname(__file__), 'database', 'sensor_data.db')
+db = Database(db_path)
+
 
 devices = {}
 
@@ -32,21 +44,40 @@ def on_discovery_message(client, userdata, msg):
 def on_sensor_data(client, userdata, msg):
     try:
         payload = json.loads(msg.payload.decode())
-        print(f"Data diterima dari {msg.topic}: {payload}")
-        # Tambahkan logika pemrosesan data sensor di sini
+        data_type = list (payload.keys())[0]
+        value = payload[data_type]
+        unit = payload.get('unit', '')
+        timestamp = payload.get('timestamp', time.time())
+        device_id = None
+
+        # Mencari device_id berdasarkan topik
+        for device in devices.values():
+            if device['topic'] == msg.topic:
+                device_id = device['device_id']
+                break
+
+        if device_id is None:
+            print(f"Device ID tidak ditemukan untuk topik {msg.topic}")
+            return
+
+        print(f"Data diterima dari {device_id}: {data_type} = {value} {unit}")
+
+        # Menyimpan data ke database
+        db.insert_data(timestamp, device_id, data_type, value, unit)
+
     except json.JSONDecodeError:
         print(f"Data diterima dari {msg.topic}: {msg.payload.decode()} (format tidak valid)")
 
 
 # Konfigurasi client MQTT
-client = mqtt.Client()
+client = mqtt_client.Client()
 client.on_connect = on_connect
 
 # Menambahkan callback untuk topik discovery
 client.message_callback_add("home/discovery", on_discovery_message)
 
 # Menambahkan callback untuk topik data sensor
-client.on_message = on_sensor_data  # Default callback untuk topik lain
+client.on_message = on_sensor_data
 
 # Terhubung ke broker
 client.connect("127.0.0.1", 1883)
