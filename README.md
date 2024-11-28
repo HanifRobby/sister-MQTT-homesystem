@@ -1,1 +1,1 @@
-# Sistem Terdistribusi MQTT Home System
+# Sistem Terdistribusi MQTT Smart Home
