@@ -12,15 +12,15 @@ from database import Database
 db_path = os.path.join(os.path.dirname(__file__), 'database', 'sensor_data.db')
 db = Database(db_path)
 
-
 devices = {}
+last_temperature = None  # Variabel untuk menyimpan suhu terakhir
 
-def on_connect (client, userdata, flags, rc):
+def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT Broker!")
     client.subscribe("home/discovery")
 
 def on_discovery_message(client, userdata, msg):
-    print("Pesan dari dicovery masuk")
+    print("Pesan dari discovery masuk")
     try:
         # Parsing payload JSON
         payload = json.loads(msg.payload.decode())
@@ -42,10 +42,10 @@ def on_discovery_message(client, userdata, msg):
         print("Gagal memproses pesan discovery. Pastikan format JSON valid.")
 
 def on_sensor_data(client, userdata, msg):
+    global last_temperature  # Menggunakan variabel global
     try:
         payload = json.loads(msg.payload.decode())
-        data_type = list (payload.keys())[0]
-        value = payload[data_type]
+        temperature = payload.get('temperature')  # Ambil suhu dari payload
         unit = payload.get('unit', '')
         timestamp = payload.get('timestamp', time.time())
         device_id = None
@@ -60,14 +60,18 @@ def on_sensor_data(client, userdata, msg):
             print(f"Device ID tidak ditemukan untuk topik {msg.topic}")
             return
 
-        print(f"Data diterima dari {device_id}: {data_type} = {value} {unit}")
+        print(f"Data diterima dari {device_id}: temperature = {temperature} {unit}")
+
+        # Cek suhu untuk alert
+        if temperature > 100:  # Misalnya, suhu di atas 100 derajat Celsius dianggap tidak normal
+            print("ALERT: Suhu tidak normal, cek kondisi ruangan!")
 
         # Menyimpan data ke database
-        db.insert_data(timestamp, device_id, data_type, value, unit)
+        db.insert_data(timestamp, device_id, 'temperature', temperature, unit)
+        last_temperature = temperature  # Update suhu terakhir
 
     except json.JSONDecodeError:
         print(f"Data diterima dari {msg.topic}: {msg.payload.decode()} (format tidak valid)")
-
 
 # Konfigurasi client MQTT
 client = mqtt_client.Client()
@@ -77,9 +81,11 @@ client.on_connect = on_connect
 client.message_callback_add("home/discovery", on_discovery_message)
 
 # Menambahkan callback untuk topik data sensor
-client.on_message = on_sensor_data
+client.on_message = on_sensor_data  # Default callback untuk topik lain
 
-# Terhubung ke broker
-client.connect("127.0.0.1", 1883)
+# Mengaktifkan TLS
+client.tls_set(ca_certs="path/to/ca.crt", certfile="path/to/client.crt", keyfile="path/to/client.key")
+
+# Terhubung ke broker dengan port TLS
+client.connect("127.0.0.1", 8883)  # Port 8883 untuk TLS
 client.loop_forever()
-
