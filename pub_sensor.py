@@ -28,15 +28,15 @@ client.publish("home/discovery", json.dumps(device_info), retain=True)
 try:
     suhu = 30
     while True:
-        suhu += random.randint(-2, 2)
+        suhu += random.uniform(-0.5, 0.5)
         sensor_data = {
             "temperature": suhu,
             "unit": "Celsius",
-            "timestamp": time.asctime()
+            "timestamp": time.time()
         }
         client.publish(topic, json.dumps(sensor_data))
         print(f"Published: {sensor_data}")
-        time.sleep(1)
+        time.sleep(5)
 
 except KeyboardInterrupt:
     print("Publisher dihentikan.")
