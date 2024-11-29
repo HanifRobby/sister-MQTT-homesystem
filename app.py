@@ -19,7 +19,7 @@ def index():
 @app.route('/devices')
 def devices():
     # Mendapatkan daftar device_id unik dari database
-    devices_ids = db.get_devices_ids()
+    devices_ids = db.get_device_ids()
     return jsonify(devices_ids)
 
 @app.route('/data')
