@@ -39,6 +39,17 @@ class Database:
             LIMIT ?
         ''', (limit,))
         return cursor.fetchall()
+    
+    def fetch_data_by_device(self, device_id, limit=100):
+        cursor = self.connection.cursor()
+        cursor.execute('''
+            SELECT timestamp, device_id, data_type, value, unit
+            FROM sensor_data
+            WHERE device_id = ?
+            ORDER BY timestamp DESC
+            LIMIT ?
+        ''', (device_id, limit))
+        return cursor.fetchall()
 
     def close(self):
         self.connection.close()
