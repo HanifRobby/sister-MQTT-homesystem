@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import os
 import sys
 
@@ -18,8 +18,13 @@ def index():
 
 @app.route('/data')
 def data():
-    # Mengambil data terbaru
-    sensor_data = db.fetch_data(100)
+    # Mengambil parameter device_id
+    device_id = request.args.get('device_id')
+    # Mengambil data terbaru untuk device_id tertentu
+    if device_id:
+        sensor_data = db.fetch_data_by_device(device_id, 100)
+    else:
+        sensor_data = db.fetch_data(100)
     data_list = []
     for data_point in sensor_data:
         timestamp, device_id, data_type, value, unit = data_point
