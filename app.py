@@ -16,10 +16,17 @@ db = Database(db_path)
 def index():
     return render_template('index.html')
 
+@app.route('/devices')
+def devices():
+    # Mendapatkan daftar device_id unik dari database
+    devices_ids = db.get_devices_ids()
+    return jsonify(devices_ids)
+
 @app.route('/data')
 def data():
     # Mengambil parameter device_id
     device_id = request.args.get('device_id')
+
     # Mengambil data terbaru untuk device_id tertentu
     if device_id:
         sensor_data = db.fetch_data_by_device(device_id, 100)
