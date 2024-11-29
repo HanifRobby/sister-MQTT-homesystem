@@ -7,58 +7,99 @@
 </head>
 <body>
     <h1>Visualisasi Data Sensor</h1>
-    <canvas id="sensorChart" width="800" height="400"></canvas>
+    <div id="charts-container">
+        <!-- Grafik akan ditambahkan di sini -->
+    </div>
 
     <script>
-        function updateChart() {
-        fetch('/data')
-        .then(response => response.json())
-        .then(data => {
-            const timestamps = data.map(item => new Date(item.timestamp * 1000).toLocaleTimeString());
-            const values = data.map(item => item.value);
+        let devices = [];
 
-            sensorChart.data.labels = timestamps.reverse();
-            sensorChart.data.datasets[0].data = values.reverse();
-            sensorChart.update();
-        });
-    }
-
-    const ctx = document.getElementById('sensorChart').getContext('2d');
-    const sensorChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Temperature',
-                data: [],
-                fill: false,
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Waktu'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Nilai'
-                    }
-                }
-            }
+        function fetchDevices() {
+            fetch('/devices')
+            .then(response => response.json())
+            .then(data => {
+                devices = data;
+                createCharts();
+            });
         }
-    });
 
-    // Memperbarui chart saat halaman pertama kali dimuat
-    updateChart();
+        function createCharts() {
+            const container = document.getElementById('charts-container');
+            container.innerHTML = ''; // Bersihkan kontainer
 
-    // Memperbarui chart setiap 5 detik
-    setInterval(updateChart, 5000);
+            devices.forEach(device_id => {
+                // Membuat elemen canvas untuk grafik
+                const canvas = document.createElement('canvas');
+                canvas.id = `chart-${device_id}`;
+                canvas.width = 800;
+                canvas.height = 400;
+                container.appendChild(canvas);
+
+                // Membuat grafik untuk sensor
+                const ctx = canvas.getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: device_id,
+                            data: [],
+                            fill: false,
+                            borderColor: getRandomColor(),
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Waktu'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Nilai'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Simpan chart ke dalam elemen canvas
+                canvas.chart = chart;
+
+                // Memperbarui chart
+                updateChart(device_id, chart);
+                setInterval(() => updateChart(device_id, chart), 5000);
+            });
+        }
+
+        function updateChart(device_id, chart) {
+            fetch(`/data?device_id=${device_id}`)
+            .then(response => response.json())
+            .then(data => {
+                const timestamps = data.map(item => new Date(item.timestamp * 1000).toLocaleTimeString());
+                const values = data.map(item => item.value);
+
+                chart.data.labels = timestamps.reverse();
+                chart.data.datasets[0].data = values.reverse();
+                chart.update();
+            });
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+              color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        // Fetch devices dan create charts saat halaman dimuat
+        fetchDevices();
     </script>
 </body>
 </html>
