@@ -40,6 +40,16 @@ class Database:
         ''', (limit,))
         return cursor.fetchall()
     
+    def get_device_ids(self):
+        cursor = self.connection.cursor()
+        cursor.execute('''
+            SELECT DISTINCT device_id FROM sensor_data
+        ''')
+        rows = cursor.fetchall()
+        device_ids = [row[0] for row in rows]
+        return device_ids
+ 
+    
     def fetch_data_by_device(self, device_id, limit=100):
         cursor = self.connection.cursor()
         cursor.execute('''
