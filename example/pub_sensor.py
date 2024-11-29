@@ -12,7 +12,7 @@ port = 1883
 topic = "home/temperature"
 
 device_info = {
-    "device_id": "sensor_kitchen_01",
+    "device_id": "sensor_kitchen_02",
     "type": "temperature_sensor",
     "location": "kitchen",
     "topic": topic,
