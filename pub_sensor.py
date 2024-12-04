@@ -6,7 +6,15 @@ import paho.mqtt.client as mqtt
 
 # Inisialisasi broker MQTT
 broker = "127.0.0.1"
-port = 1883
+port = 8883
+
+# Path ke sertifikat dan kunci
+ca_cert = "/path/to/ca.crt"            # Sertifikat CA
+client_cert = "/path/to/client.crt"    # Sertifikat klien
+client_key = "/path/to/client.key"     # Kunci privat klien
+
+client = mqtt.Client()
+
 
 # Inisialisasi topik dan pesan
 topic = "home/temperature"
@@ -19,7 +27,7 @@ device_info = {
     "unit": "Celsius"
 }
 
-client = mqtt.Client()
+# Terhubung ke broker
 client.connect(broker, port)
 client.loop_start()
 
