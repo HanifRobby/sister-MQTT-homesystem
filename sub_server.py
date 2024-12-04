@@ -94,6 +94,6 @@ client.message_callback_add("home/discovery", on_discovery_message)
 client.on_message = on_sensor_data
 
 # Terhubung ke broker
-client.connect("127.0.0.1", 8883)
+client.connect("localhost", 8883)
 client.loop_forever()
 

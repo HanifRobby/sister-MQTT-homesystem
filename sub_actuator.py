@@ -1,6 +1,7 @@
 import json
 import paho.mqtt.client as mqtt_client
 import time
+import ssl
 
 # Path ke sertifikat dan kunci
 ca_cert = "/etc/mosquitto/ca_certificates/ca.crt"  # Sertifikat CA
@@ -73,5 +74,5 @@ client.on_connect = on_connect
 client.on_message = on_message
 
 # Terhubung ke broker
-client.connect("127.0.0.1", 8883)
+client.connect("localhost", 8883)
 client.loop_forever()

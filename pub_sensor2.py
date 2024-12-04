@@ -5,7 +5,7 @@ import paho.mqtt.client as mqtt
 import ssl
 
 # Inisialisasi broker MQTT
-broker = "127.0.0.1"
+broker = "localhost"
 port = 8883
 
 # Path ke sertifikat dan kunci
