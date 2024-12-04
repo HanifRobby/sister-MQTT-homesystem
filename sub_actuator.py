@@ -2,40 +2,55 @@ import json
 import paho.mqtt.client as mqtt_client
 import time
 
+# Ambang batas suhu
+TEMPERATURE_THRESHOLD = 35.0
+
 def on_connect(client, userdata, flags, rc):
     print("Aktuator terhubung ke MQTT Broker!")
-    # Berlangganan ke topik perintah
-    client.subscribe("home/commands/alarm")
+    # Berlangganan ke topik data sensor yang relevan
+    client.subscribe("home/temperature")
+    client.subscribe("home/humidity")
 
 def on_message(client, userdata, msg):
     try:
         payload = json.loads(msg.payload.decode())
-        command = payload.get('command')
-        value = payload.get('value')
+        data_type = list(payload.keys())[0]
+        value = payload[data_type]
+        unit = payload.get('unit', '')
         timestamp = payload.get('timestamp', time.time())
 
-        print(f"Perintah diterima: {command} = {value} pada {time.ctime(timestamp)}")
+        print(f"Data sensor diterima: {data_type} = {value} {unit} pada {time.ctime(timestamp)}")
 
-        # Melakukan aksi berdasarkan perintah
-        if command == 'alarm':
-            if value == 'ON':
-                activate_alarm()
-            elif value == 'OFF':
-                deactivate_alarm()
-            else:
-                print("Nilai perintah tidak dikenal.")
+        # Mengimplementasikan algoritma untuk berbagai jenis sensor
+        if data_type == 'temperature':
+            process_temperature(value)
+        elif data_type == 'humidity':
+            process_humidity(value)
         else:
-            print("Jenis perintah tidak dikenal.")
+            print("Jenis data sensor tidak dikenali.")
     except json.JSONDecodeError:
-        print("Pesan perintah tidak valid.")
+        print("Pesan data sensor tidak valid.")
+
+def process_temperature(value):
+    if value >= TEMPERATURE_THRESHOLD:
+        activate_alarm()
+    else:
+        deactivate_alarm()
+
+def process_humidity(value):
+    if ((value >= 60) & (value <= 40)):
+        activate_alarm()
+    else:
+        deactivate_alarm()
+
 
 def activate_alarm():
     # Logika untuk mengaktifkan alarm
-    print("Alarm diaktifkan!")
+    print("Alarm diaktifkan oleh aktuator!")
 
 def deactivate_alarm():
     # Logika untuk menonaktifkan alarm
-    print("Alarm dinonaktifkan.")
+    print("Alarm dinonaktifkan oleh aktuator.")
 
 # Konfigurasi client MQTT
 client = mqtt_client.Client()

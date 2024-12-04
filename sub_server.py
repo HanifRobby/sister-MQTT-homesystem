@@ -68,25 +68,25 @@ def on_sensor_data(client, userdata, msg):
         # Menyimpan data ke database
         db.insert_data(timestamp, device_id, data_type, value, unit)
 
-        # Memproses data sensor dan mengirim perintah ke aktuator jika diperlukan
-        if data_type == 'temperature' and value >= TEMPERATURE_THRESHOLD:
-            send_command_to_actuator('alarm', 'ON')
-        else:
-            send_command_to_actuator('alarm', 'OFF')
+        # # Memproses data sensor dan mengirim perintah ke aktuator jika diperlukan
+        # if data_type == 'temperature' and value >= TEMPERATURE_THRESHOLD:
+        #     send_command_to_actuator('alarm', 'ON')
+        # else:
+        #     send_command_to_actuator('alarm', 'OFF')
 
 
     except json.JSONDecodeError:
         print(f"Data diterima dari {msg.topic}: {msg.payload.decode()} (format tidak valid)")
 
-def send_command_to_actuator(command_type, command_value):
-    command_topic = 'home/commands/alarm'
-    command_payload = {
-        'command': command_type,
-        'value': command_value,
-        'timestamp': time.time()
-    }
-    client.publish(command_topic, json.dumps(command_payload))
-    print(f"Mengirim perintah ke aktuator: {command_payload}")
+# def send_command_to_actuator(command_type, command_value):
+#     command_topic = 'home/commands/alarm'
+#     command_payload = {
+#         'command': command_type,
+#         'value': command_value,
+#         'timestamp': time.time()
+#     }
+#     client.publish(command_topic, json.dumps(command_payload))
+#     print(f"Mengirim perintah ke aktuator: {command_payload}")
 
 
 # Konfigurasi client MQTT
