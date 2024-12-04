@@ -2,6 +2,22 @@ import json
 import paho.mqtt.client as mqtt_client
 import time
 
+# Path ke sertifikat dan kunci
+ca_cert = "/etc/mosquitto/ca_certificates/ca.crt"  # Sertifikat CA
+client_cert = "/etc/mosquitto/certs/client.crt"    # Sertifikat klien
+client_key = "/etc/mosquitto/certs/client.key"     # Kunci privat klien
+
+# Inisialisasi Client MQTT
+client = mqtt_client.Client()
+
+# Mengatur TLS dengan sertifikat klien
+client.tls_set(
+    ca_certs=ca_cert,
+    certfile=client_cert,
+    keyfile=client_key,
+    tls_version=ssl.PROTOCOL_TLSv1_2
+)
+
 # Ambang batas suhu
 TEMPERATURE_THRESHOLD = 35.0
 
@@ -53,10 +69,9 @@ def deactivate_alarm():
     print("Alarm dinonaktifkan oleh aktuator.")
 
 # Konfigurasi client MQTT
-client = mqtt_client.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
 # Terhubung ke broker
-client.connect("127.0.0.1", 1883)
+client.connect("127.0.0.1", 8883)
 client.loop_forever()

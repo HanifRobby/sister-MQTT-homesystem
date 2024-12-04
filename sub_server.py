@@ -1,5 +1,6 @@
 import json
 import paho.mqtt.client as mqtt_client
+import ssl
 import time
 import os
 import sys
@@ -15,8 +16,18 @@ db = Database(db_path)
 devices = {}
 client = mqtt_client.Client()
 
-# Ambang batas suhu
-TEMPERATURE_THRESHOLD = 35.0  # Contoh ambang batas suhu
+# Path ke sertifikat dan kunci
+ca_cert = "/etc/mosquitto/ca_certificates/ca.crt"  # Sertifikat CA
+client_cert = "/etc/mosquitto/certs/client.crt"    # Sertifikat klien
+client_key = "/etc/mosquitto/certs/client.key"     # Kunci privat klien
+
+# Mengatur TLS dengan sertifikat klien
+client.tls_set(
+    ca_certs=ca_cert,
+    certfile=client_cert,
+    keyfile=client_key,
+    tls_version=ssl.PROTOCOL_TLSv1_2
+)
 
 def on_connect (client, userdata, flags, rc):
     print("Connected to MQTT Broker!")
@@ -68,25 +79,9 @@ def on_sensor_data(client, userdata, msg):
         # Menyimpan data ke database
         db.insert_data(timestamp, device_id, data_type, value, unit)
 
-        # # Memproses data sensor dan mengirim perintah ke aktuator jika diperlukan
-        # if data_type == 'temperature' and value >= TEMPERATURE_THRESHOLD:
-        #     send_command_to_actuator('alarm', 'ON')
-        # else:
-        #     send_command_to_actuator('alarm', 'OFF')
-
 
     except json.JSONDecodeError:
         print(f"Data diterima dari {msg.topic}: {msg.payload.decode()} (format tidak valid)")
-
-# def send_command_to_actuator(command_type, command_value):
-#     command_topic = 'home/commands/alarm'
-#     command_payload = {
-#         'command': command_type,
-#         'value': command_value,
-#         'timestamp': time.time()
-#     }
-#     client.publish(command_topic, json.dumps(command_payload))
-#     print(f"Mengirim perintah ke aktuator: {command_payload}")
 
 
 # Konfigurasi client MQTT
@@ -99,6 +94,6 @@ client.message_callback_add("home/discovery", on_discovery_message)
 client.on_message = on_sensor_data
 
 # Terhubung ke broker
-client.connect("127.0.0.1", 1883)
+client.connect("127.0.0.1", 8883)
 client.loop_forever()
 

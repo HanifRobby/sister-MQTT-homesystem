@@ -1,8 +1,8 @@
 import time
 import json
 import random
-
 import paho.mqtt.client as mqtt
+import ssl
 
 # Inisialisasi broker MQTT
 broker = "127.0.0.1"
@@ -15,6 +15,13 @@ client_key = "/etc/mosquitto/certs/client.key"     # Kunci privat klien
 
 # Inisialisasi Client MQTT
 client = mqtt.Client()
+
+client.tls_set(
+    ca_certs=ca_cert,
+    certfile=client_cert,
+    keyfile=client_key,
+    tls_version=ssl.PROTOCOL_TLSv1_2
+)
 
 # Inisialisasi topik dan pesan
 topic = "home/temperature"
