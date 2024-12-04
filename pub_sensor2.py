@@ -5,7 +5,15 @@ import paho.mqtt.client as mqtt
 
 # Inisialisasi broker MQTT
 broker = "127.0.0.1"
-port = 1883
+port = 8883
+
+# Path ke sertifikat dan kunci
+ca_cert = "/etc/mosquitto/ca_certificates/ca.crt"  # Sertifikat CA
+client_cert = "/etc/mosquitto/certs/client.crt"    # Sertifikat klien
+client_key = "/etc/mosquitto/certs/client.key"     # Kunci privat klien
+
+# Inisialisasi Client MQTT
+client = mqtt.Client()
 
 # Inisialisasi topik dan pesan
 topic = "home/humidity"
@@ -18,7 +26,7 @@ device_info = {
     "unit": "%"
 }
 
-client = mqtt.Client()
+# Terhubung ke broker
 client.connect(broker, port)
 client.loop_start()
 
