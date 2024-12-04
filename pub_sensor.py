@@ -13,8 +13,8 @@ ca_cert = "/path/to/ca.crt"            # Sertifikat CA
 client_cert = "/path/to/client.crt"    # Sertifikat klien
 client_key = "/path/to/client.key"     # Kunci privat klien
 
+# Inisialisasi Client MQTT
 client = mqtt.Client()
-
 
 # Inisialisasi topik dan pesan
 topic = "home/temperature"
